@@ -9,7 +9,7 @@ from io import BytesIO
 import json
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 
-#augment
+#augment your_application
 datagen = ImageDataGenerator(
     rotation_range=20,
     width_shift_range=0.2,
