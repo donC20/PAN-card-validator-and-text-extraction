@@ -33,7 +33,7 @@ def preprocess_image_from_url(image_url):
     response = requests.get(image_url)
     img = cv2.imdecode(np.frombuffer(response.content, np.uint8), cv2.IMREAD_COLOR)
     # Apply augmentation
-    img = datagen.random_transform(img)
+    # img = datagen.random_transform(img)
     img = cv2.resize(img, (224, 224))
     img = img / 255.0
     img = np.float32(img)
