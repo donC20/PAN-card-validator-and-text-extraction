@@ -103,9 +103,9 @@ def predict_by_image_from_url(image_url):
         img = cv2.imdecode(np.frombuffer(response.content, np.uint8), cv2.IMREAD_COLOR)
 
         # Extract information using regular expressions
-        info = extract_information(img)
+        # info = extract_information(img)
 
-        return jsonify({"predicted_class": predicted_class, "data": info})
+        return jsonify({"predicted_class": predicted_class, "data": "withhold"})
     else:
         return jsonify({"predicted_class": "Not a PAN", "data": predicted_class})
 
