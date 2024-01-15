@@ -10,7 +10,7 @@ import json
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 
 # Set Tesseract path
-pytesseract.pytesseract.tesseract_cmd = 'pytesseract/tesseract.exe'
+# pytesseract.pytesseract.tesseract_cmd = 'pytesseract/tesseract.exe'
 
 application = Flask(__name__)
 
