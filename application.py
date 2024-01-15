@@ -23,9 +23,10 @@ def preprocess_image_from_url(image_url):
     img = cv2.imdecode(np.frombuffer(response.content, np.uint8), cv2.IMREAD_COLOR)
     img = cv2.resize(img, (224, 224))
     img = img / 255.0
-    img = np.float32(img)
+    img = np.float32(img)  # Ensure FLOAT32 data type
     img = np.expand_dims(img, axis=0)
     return img
+
 
 def extract_information(img):
     r = re.compile(r"([A-Z]+\s[A-Z]+\s[A-Z]+)|([A-Z]{5}[0-9]{4}[A-Z]{1})|([0-9]{2}/[0-9]{2}/[0-9]{4})")
@@ -52,17 +53,21 @@ def extract_information(img):
     bag = [(id, text) for id, text in enumerate(data['text']) if r.match(text)]
     img_marked = img.copy()
 
+    name_region = None  # Initialize name_region outside the loop
+
     for (id, text) in bag:
         if "Name" in text:
-            name_region = img[data['top'][id]+data['height'][id]:data['top'][id]+2*data['height'][id], 
+            name_region = img[data['top'][id]+data['height'][id]:data['top'][id]+2*data['height'][id],
                                data['left'][id]:data['left'][id]+2*data['width'][id]]
-    if 'name_region' in locals():
+
+    if name_region is not None:
         name_gray = cv2.cvtColor(name_region, cv2.COLOR_BGR2GRAY)
         name_thresh = cv2.threshold(name_gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)[1]
         name_text = pytesseract.image_to_string(name_thresh)
         name_match = r.match(name_text)
         if name_match:
             bag.append((-1, name_text))
+
     extracted_info = {
         "Name": "",
         "Id": "",
@@ -79,7 +84,6 @@ def extract_information(img):
                 extracted_info["Dob"] = text
 
     return extracted_info
-
 
 def predict_by_image_from_url(image_url):
     # Preprocess the input image
@@ -124,4 +128,4 @@ def index():
     return "<center><h1>hello dude</h1></center>"
 
 if __name__ == '__main__':
-    application.run(debug=True)
+    application.run(host='0.0.0.0', port=8000)
