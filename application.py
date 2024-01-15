@@ -14,8 +14,9 @@ pytesseract.pytesseract.tesseract_cmd = 'pytesseract/tesseract.exe'
 
 application = Flask(__name__)
 
-# Load the .h5 model
-model = tf.keras.models.load_model("pan_detector_model_v7.h5")
+# Load the .tflite model
+interpreter = tf.lite.Interpreter(model_path="pan_detector_model_v7.tflite")
+interpreter.allocate_tensors()
 
 def preprocess_image_from_url(image_url):
     response = requests.get(image_url)
@@ -80,12 +81,14 @@ def extract_information(img):
     return extracted_info
 
 
-def predictByImageFromURL(image_url):
+def predict_by_image_from_url(image_url):
     # Preprocess the input image
     input_image = preprocess_image_from_url(image_url)
 
     # Run the inference
-    predictions = model.predict(input_image)
+    interpreter.set_tensor(interpreter.get_input_details()[0]['index'], input_image)
+    interpreter.invoke()
+    predictions = interpreter.get_tensor(interpreter.get_output_details()[0]['index'])
     predicted_class_index = np.argmax(predictions)
 
     class_labels = ["PAN", "Others"]
@@ -100,8 +103,7 @@ def predictByImageFromURL(image_url):
 
         return jsonify({"predicted_class": predicted_class, "data": info})
     else:
-        return jsonify({"predicted_class": "Not an PAN", "data": predicted_class})
-
+        return jsonify({"predicted_class": "Not a PAN", "data": predicted_class})
 
 @application.route('/predict', methods=['GET', 'POST'])
 def predict():
@@ -109,17 +111,17 @@ def predict():
         data = request.get_json()
         image_url = data.get('image_url')
         print("Received image_url:", image_url)
-        return predictByImageFromURL(image_url)
+        return predict_by_image_from_url(image_url)
     elif request.method == 'GET':
         image_url = request.args.get('image_url')
         print("Received image_url:", image_url)
-        return predictByImageFromURL(image_url)
+        return predict_by_image_from_url(image_url)
     else:
         return jsonify({"error": "Invalid request method"}), 405
+
 @application.route('/')
 def index():
     return "<center><h1>hello dude</h1></center>"
-
 
 if __name__ == '__main__':
     application.run(debug=True)
